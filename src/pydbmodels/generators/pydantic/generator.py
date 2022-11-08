@@ -33,7 +33,7 @@ class PydanticGenerator(IGenerator):
         g = GenType()
         g.name = column.column_name
         g.nullable = True if column.is_nullable == 'YES' else False
-        
+
         # Gets the python mapping for the database type
         name_type = column.udt_name
         val_type = type_map.get_type(name_type)

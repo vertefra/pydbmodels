@@ -25,7 +25,7 @@ class {{ table_name }}Model({{ ", ".join(class_parents)}}):
 class {{ table_name}}Initializer({{ ", ".join(class_parents)}}):
     {%+ for type in table_types %}
     {{ type.name}}: 
-        {%- if type.has_default or type.is_nullable -%}
+        {%- if type.has_default or type.nullable -%}
                 {{ " " }}Union[{{ ", ".join(type.str_value) }}, None] = None 
         {%- else -%} 
             {%- if type.is_union -%}

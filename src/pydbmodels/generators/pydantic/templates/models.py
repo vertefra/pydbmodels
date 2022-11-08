@@ -55,7 +55,7 @@ class GenerateModels:
                         table_types=table_types,
                         class_parents=self.class_parents
                     ).dump(write_file)
-                    
+
             black.format_file_contents(file_path, fast=False, mode=Mode())
     
     def __pretty_table_name(self, name: str) -> str:
@@ -85,9 +85,7 @@ class GenerateModels:
                         import_header.add(import_)
 
         # Adding model imports
-        for model in gen_types:
-            print(f"{model.name} - {model.is_union}")
-            
+        for model in gen_types:            
             if model.is_union:
                 # Add from typing import Union
                 current_imports = from_import_header.get('typing', set())
