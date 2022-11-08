@@ -53,7 +53,8 @@ class GenerateModels:
                         import_header=import_header,
                         table_name=self.__pretty_table_name(table_name),
                         table_types=table_types,
-                        class_parents=self.class_parents
+                        class_parents=self.class_parents,
+                        identifier=config.identifier_settings
                     ).dump(write_file)
 
             black.format_file_contents(file_path, fast=False, mode=Mode())
