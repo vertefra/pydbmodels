@@ -68,7 +68,7 @@ class {{ table_name}}Initializer({{ ", ".join(class_parents)}}):
 class {{ table_name}}Updater({{ ", ".join(class_parents)}}):
     {%+ for type in table_types -%}
         {%- if type.name != identifier.column_identifier -%}
-            {{ type.name}}:{{ " " }}Union[{{ ", ".join(type.str_value) }}, None] = None 
+            {{ type.name}}:{{ " " }}Union[{{ ", ".join(type.str_value) }}, None]
         {%- else -%}
             {%- if identifier.include_in_updater -%}
             {{ type.name}}: {{ type.str_value[0]}}
