@@ -1,0 +1,47 @@
+{%- for from_, imports in from_imports.items() -%}
+from {{ from_ }} import {{ ", ".join(imports) }}{{"\n"}}
+
+{%- endfor -%}
+
+{%- if import_header -%}
+import {{ ", ".join(import_header) }}
+{{"\n"}}
+{%- endif -%}
+
+
+{# db class #}
+
+class {{ table_name }}Model({{ ", ".join(class_parents)}}):
+    {%+ for type in table_types %}
+    {{ type.name }}: 
+        {%- if type.nullable -%}
+            {{ " "}}Union[{{ ",".join(type.str_value) }}, None]
+        {%- else -%}
+            {{ " "}}{{ type.str_value[0] }}
+        {%- endif -%}
+    {% endfor %}
+
+
+{# initializer Class #}
+
+class {{ table_name}}Initializer({{ ", ".join(class_parents)}}):
+    {%+ for type in table_types %}
+    {{ type.name}}: 
+        {%- if type.has_default or type.is_nullable -%}
+                {{ " " }}Union[{{ ", ".join(type.str_value) }}, None] = None 
+        {%- else -%} 
+            {%- if type.is_union -%}
+                {{ " " }}Union[{{ ", ".join(type.str_value) }}]
+            {%- else -%}
+                {{ " " }}{{ ", ".join(type.str_value) }}
+            {%- endif -%}
+        {%- endif -%}
+    {% endfor %}
+
+
+{# Updated Class #}
+
+class {{ table_name}}Updater({{ ", ".join(class_parents)}}):
+    {%+ for type in table_types -%}
+    {{ type.name}}:{{ " " }}Union[{{ ", ".join(type.str_value) }}, None] = None 
+    {% endfor %}
