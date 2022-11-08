@@ -38,8 +38,6 @@ class PydanticGenerator(IGenerator):
         name_type = column.udt_name
         val_type = type_map.get_type(name_type)
 
-        print(val_type.str_value)
-
         if val_type is None:
             raise Exception(f'No type found for {name_type}')
 
@@ -48,6 +46,9 @@ class PydanticGenerator(IGenerator):
         
         g.has_default = column.column_default is not None and column.column_default != ''
         g.is_union = len(g.str_value) > 1
+
+        if g.is_union:
+            g.imports.append({"from": "typing", "import": "Union"})
 
         return g
 
