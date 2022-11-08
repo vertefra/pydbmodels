@@ -4,6 +4,8 @@ from ....settings import config
 from typing import Dict, Any, List, Set
 from jinja2 import Environment, Template
 import os
+import black
+from black.mode import Mode
 
 env = Environment(autoescape=False, optimized=False)
 
@@ -52,7 +54,9 @@ class GenerateModels:
                         table_name=self.__pretty_table_name(table_name),
                         table_types=table_types,
                         class_parents=self.class_parents
-                    ).dump(write_file)  
+                    ).dump(write_file)
+                    
+            black.format_file_contents(file_path, fast=False, mode=Mode())
     
     def __pretty_table_name(self, name: str) -> str:
         split = name.split('_')

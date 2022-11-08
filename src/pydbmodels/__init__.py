@@ -15,6 +15,6 @@ def generate(db_type: str | None, db_url: str | None):
     metadata = dbmeta.gen_metadata(config.database, config.database_url)
     p = PydanticGenerator()
     tree = p.build(metadata)
-    g = GenerateModels(tree, [{"from": "pydantic", "import": "BaseModel"}], ['BaseModel'])
+    g = GenerateModels(tree, [{"from": "pydantic", "import": "BaseModel"}, {"from": "typing", "import": "Union"}], ['BaseModel'])
     g.write()
     

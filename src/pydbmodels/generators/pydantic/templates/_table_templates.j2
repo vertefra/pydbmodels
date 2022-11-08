@@ -20,8 +20,6 @@ class {{ table_name }}Model({{ ", ".join(class_parents)}}):
             {{ " "}}{{ type.str_value[0] }}
         {%- endif -%}
     {% endfor %}
-
-
 {# initializer Class #}
 
 class {{ table_name}}Initializer({{ ", ".join(class_parents)}}):
@@ -37,11 +35,10 @@ class {{ table_name}}Initializer({{ ", ".join(class_parents)}}):
             {%- endif -%}
         {%- endif -%}
     {% endfor %}
-
-
 {# Updated Class #}
 
 class {{ table_name}}Updater({{ ", ".join(class_parents)}}):
+    {{" "}}
     {%+ for type in table_types -%}
     {{ type.name}}:{{ " " }}Union[{{ ", ".join(type.str_value) }}, None] = None 
     {% endfor %}

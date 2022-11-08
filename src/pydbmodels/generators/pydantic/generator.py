@@ -41,13 +41,13 @@ class PydanticGenerator(IGenerator):
         if val_type is None:
             raise Exception(f'No type found for {name_type}')
 
-        g.imports = val_type.imports
+        g.imports = val_type.imports or []
         g.str_value = val_type.str_value
         
         g.has_default = column.column_default is not None and column.column_default != ''
         g.is_union = len(g.str_value) > 1
-
-        if g.is_union:
+        
+        if g.is_union or g.nullable:
             g.imports.append({"from": "typing", "import": "Union"})
 
         return g
