@@ -22,10 +22,10 @@ def generate_list_valType(name: NameType, val: ValType) -> Tuple[NameType, ValTy
     # otherwise a union of lists
 
     if len(val.str_value) == 1:
-        v.str_value = [f'List[{val.str_value[0]}]']
+        v.str_value = [f"List[{val.str_value[0]}]"]
         v.imports.append({"from": "typing", "import": "List"})
     elif len(val.str_value) > 1:
-        _union = ''
+        _union = ""
 
         for value in val.str_value:
             if len(_union) < 1:
@@ -33,10 +33,15 @@ def generate_list_valType(name: NameType, val: ValType) -> Tuple[NameType, ValTy
             else:
                 _union = f"{_union}, List[{value}]"
 
-        v.str_value = [f'Union[{_union}]']
-        v.imports.extend([{"from": "typing", "import": "List"}, {"from": "typing", "import": "Union"}])
-    
-    return pg_type,  v
+        v.str_value = [f"Union[{_union}]"]
+        v.imports.extend(
+            [
+                {"from": "typing", "import": "List"},
+                {"from": "typing", "import": "Union"},
+            ]
+        )
+
+    return pg_type, v
 
 
 class type_map:
@@ -49,7 +54,6 @@ class type_map:
         # Register array
         array_name, array_val_type = generate_list_valType(name, val)
         cls._type_map[array_name] = array_val_type
-
 
     @classmethod
     def get_type(cls, name: NameType) -> ValType | None:

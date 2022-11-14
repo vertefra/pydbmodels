@@ -9,18 +9,24 @@ from black.mode import Mode
 
 env = Environment(autoescape=False, optimized=False)
 
+
 def folder() -> str:
     module = __file__
-    split = module.split('/')[:-1]
+    split = module.split("/")[:-1]
     return "/".join(split)
 
 
 class GenerateModels:
     models_folder: str
     tree: Tree
-    generator_imports: List[Dict[str, str]] 
+    generator_imports: List[Dict[str, str]]
 
-    def __init__(self, tree: Tree, generator_imports: List[Dict[str, str]] = [], class_parents: List[str] = []) -> None:
+    def __init__(
+        self,
+        tree: Tree,
+        generator_imports: List[Dict[str, str]] = [],
+        class_parents: List[str] = [],
+    ) -> None:
         self.models_folder = config.location
         self.tree = tree
         self.generator_imports = generator_imports
@@ -39,14 +45,14 @@ class GenerateModels:
             file_path = f"{self.models_folder}/{schema}/{table_name}.py"
 
             os.makedirs(os.path.dirname(file_path), exist_ok=True)
-            
+
             imports = self.__consolidating_imports(table_types)
-            
-            from_import_header: Dict[str, Set[str]] = imports['from_import_header']
-            import_header: Set[str] = imports['import_header']
+
+            from_import_header: Dict[str, Set[str]] = imports["from_import_header"]
+            import_header: Set[str] = imports["import_header"]
 
             with open(file_path, "w") as write_file:
-                with open(f'{folder()}/_table_templates.j2', "r") as template_file:
+                with open(f"{folder()}/_table_templates.j2", "r") as template_file:
                     t = env.from_string(template_file.read())
                     t.stream(
                         from_imports=from_import_header,
@@ -54,13 +60,13 @@ class GenerateModels:
                         table_name=self.__pretty_table_name(table_name),
                         table_types=table_types,
                         class_parents=self.class_parents,
-                        identifier=config.identifier_settings
+                        identifier=config.identifier_settings,
                     ).dump(write_file)
 
             black.format_file_contents(file_path, fast=False, mode=Mode())
-    
+
     def __pretty_table_name(self, name: str) -> str:
-        split = name.split('_')
+        split = name.split("_")
         capitalized = [n.capitalize() for n in split]
         return "".join(capitalized)
 
@@ -71,8 +77,8 @@ class GenerateModels:
 
         # Adding specific generator imports if present
         for import_dict in self.generator_imports:
-            from_ = import_dict.get('from')
-            import_: str = import_dict.get('import')
+            from_ = import_dict.get("from")
+            import_: str = import_dict.get("import")
 
             if from_:
                 # from ... import statement
@@ -83,25 +89,25 @@ class GenerateModels:
 
             else:
                 # import ... statement
-                        import_header.add(import_)
+                import_header.add(import_)
 
         # Adding model imports
-        for model in gen_types:            
+        for model in gen_types:
             if model.is_union:
                 # Add from typing import Union
-                current_imports = from_import_header.get('typing', set())
-                current_imports.add('Union')
+                current_imports = from_import_header.get("typing", set())
+                current_imports.add("Union")
                 from_import_header["typing"] = current_imports
 
             if model.nullable:
-                current_imports = from_import_header.get('typing', set())
-                current_imports.add('Union')
+                current_imports = from_import_header.get("typing", set())
+                current_imports.add("Union")
                 from_import_header["typing"] = current_imports
-            
+
             if model.imports:
                 for import_dict in model.imports:
-                    from_ = import_dict.get('from')
-                    import_: str = import_dict.get('import')
+                    from_ = import_dict.get("from")
+                    import_: str = import_dict.get("import")
 
                     if from_:
                         # from ... import statement
@@ -116,9 +122,5 @@ class GenerateModels:
 
         return {
             "from_import_header": from_import_header,
-            "import_header": import_header
+            "import_header": import_header,
         }
-
-    
-
-            
