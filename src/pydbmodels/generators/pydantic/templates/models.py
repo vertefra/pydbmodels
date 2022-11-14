@@ -1,13 +1,30 @@
 from ..generator import Tree, GenType
 from ...generator import TableFile
 from ....settings import config
-from typing import Dict, Any, List, Set
+from typing import Dict, Any, List, Set, Tuple
 from jinja2 import Environment, Template
 import os
 import black
 from black.mode import Mode
 
 env = Environment(autoescape=False, optimized=False)
+
+
+def unpack_import(import_dict: Dict[str, str]) -> Tuple[str, str | None]:
+    import_: str = ""
+    from_: str | None = None
+
+    if "import" not in import_dict:
+        raise KeyError(f"Malformed import dictionary. {import_dict}")
+
+    import_ = import_dict["import"]
+
+    if "from" not in import_dict or import_dict["from"] is None:
+        from_ = None
+    else:
+        from_ = import_dict["from"]
+
+    return import_, from_
 
 
 def folder() -> str:
@@ -77,19 +94,18 @@ class GenerateModels:
 
         # Adding specific generator imports if present
         for import_dict in self.generator_imports:
-            from_ = import_dict.get("from")
-            import_: str = import_dict.get("import")
+            import_, from_ = unpack_import(import_dict)
 
             if from_:
                 # from ... import statement
 
                 current_imports = from_import_header.get(from_, set())
-                current_imports.add(import_)
+                current_imports.add(import_ or "")
                 from_import_header[from_] = current_imports
 
             else:
                 # import ... statement
-                import_header.add(import_)
+                import_header.add(import_ or "")
 
         # Adding model imports
         for model in gen_types:
@@ -106,19 +122,18 @@ class GenerateModels:
 
             if model.imports:
                 for import_dict in model.imports:
-                    from_ = import_dict.get("from")
-                    import_: str = import_dict.get("import")
+                    model_import, model_from = unpack_import(import_dict)
 
-                    if from_:
+                    if model_from:
                         # from ... import statement
 
-                        current_imports = from_import_header.get(from_, set())
+                        current_imports = from_import_header.get(model_from, set())
                         current_imports.add(import_)
-                        from_import_header[from_] = current_imports
+                        from_import_header[model_from] = current_imports
 
                     else:
                         # import ... statement
-                        import_header.add(import_)
+                        import_header.add(model_import)
 
         return {
             "from_import_header": from_import_header,

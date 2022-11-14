@@ -1,5 +1,5 @@
-from dbmeta import dbmeta
-from dbmeta.connections import exclude
+from dbmeta import dbmeta  # type: ignore
+from dbmeta.connections.postgres import exclude  # type: ignore
 
 from .settings import config
 from .generators.pydantic.generator import PydanticGenerator

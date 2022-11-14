@@ -1,5 +1,5 @@
-from typing import NewType, Dict, Tuple
-from ..types import ValType, TText, TInt, TDatetime, TJson, TBool
+from typing import NewType, Dict, Tuple, Type
+from ..types import ValType, TText, TInt, TDatetime, TJson, TBool, IValType
 from typing import List
 
 NameType = NewType("NameType", str)
@@ -8,22 +8,17 @@ NameType = NewType("NameType", str)
 list_import: List[Dict[str, str]] = [{"from": "typing", "import": "List"}]
 
 
-def generate_list_valType(name: NameType, val: ValType) -> Tuple[NameType, ValType]:
-    v = ValType()
-
-    imports = [*(val.imports or []), *(list_import or [])]
-    v.imports = imports
-
-    # _ it's how postgres indicates array type
-
-    pg_type: NameType = f"_{name}"
-
+def generate_list_valType(
+    name: NameType, val: Type[IValType]
+) -> Tuple[NameType, Type[IValType]]:
+    str_value = []
+    imports = []
     # if only one type of value is present generate a `List[<type]`
     # otherwise a union of lists
 
     if len(val.str_value) == 1:
-        v.str_value = [f"List[{val.str_value[0]}]"]
-        v.imports.append({"from": "typing", "import": "List"})
+        str_value = [f"List[{val.str_value[0]}]"]
+        imports.append({"from": "typing", "import": "List"})
     elif len(val.str_value) > 1:
         _union = ""
 
@@ -33,22 +28,35 @@ def generate_list_valType(name: NameType, val: ValType) -> Tuple[NameType, ValTy
             else:
                 _union = f"{_union}, List[{value}]"
 
-        v.str_value = [f"Union[{_union}]"]
-        v.imports.extend(
+        str_value = [f"Union[{_union}]"]
+        imports.extend(
             [
                 {"from": "typing", "import": "List"},
                 {"from": "typing", "import": "Union"},
             ]
         )
 
-    return pg_type, v
+    _V_Array_class: Type[IValType] = type(
+        name,
+        (object, IValType),
+        {
+            "imports": [*(val.imports or []), *(list_import or [])],
+            "str_value": str_value,
+        },
+    )
+
+    # _ it's how postgres indicates array type
+
+    pg_type = NameType(f"_{name}")
+
+    return pg_type, _V_Array_class
 
 
 class type_map:
-    _type_map: Dict[NameType, ValType] = {}
+    _type_map: Dict[NameType, Type[IValType]] = {}
 
     @classmethod
-    def register_type(cls, name: NameType, val: ValType) -> None:
+    def register_type(cls, name: NameType, val: Type[IValType]) -> None:
         # Register type
         cls._type_map[name] = val
         # Register array
@@ -56,17 +64,28 @@ class type_map:
         cls._type_map[array_name] = array_val_type
 
     @classmethod
-    def get_type(cls, name: NameType) -> ValType | None:
+    def get_type(cls, name: NameType) -> Type[IValType] | None:
         return cls._type_map.get(name)
 
 
-type_map.register_type("text", TText)
-type_map.register_type("int8", TInt)
-type_map.register_type("int4", TInt)
-type_map.register_type("timestamptz", TDatetime)
-type_map.register_type("timestamp", TDatetime)
-type_map.register_type("json", TJson)
-type_map.register_type("jsonb", TJson)
-type_map.register_type("uuid", TText)
-type_map.register_type("varchar", TText)
-type_map.register_type("bool", TBool)
+text = NameType("text")
+int8 = NameType("int8")
+int4 = NameType("int4")
+timestamptz = NameType("timestamptz")
+timestamp = NameType("timestamp")
+json = NameType("json")
+jsonb = NameType("jsonb")
+uuid = NameType("uuid")
+varchar = NameType("varchar")
+bool = NameType("bool")
+
+type_map.register_type(text, TText)
+type_map.register_type(int8, TInt)
+type_map.register_type(int4, TInt)
+type_map.register_type(timestamptz, TDatetime)
+type_map.register_type(timestamp, TDatetime)
+type_map.register_type(json, TJson)
+type_map.register_type(jsonb, TJson)
+type_map.register_type(uuid, TText)
+type_map.register_type(varchar, TText)
+type_map.register_type(bool, TBool)

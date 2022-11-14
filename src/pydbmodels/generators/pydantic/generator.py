@@ -1,6 +1,14 @@
 from typing import List
-from .type_map import type_map
-from ..generator import GenType, Tree, IColumn, IMetadata, IGenerator
+from .type_map import type_map, NameType
+from ..generator import (
+    GenType,
+    Tree,
+    IColumn,
+    IMetadata,
+    IGenerator,
+    FolderName,
+    TableName,
+)
 import re
 
 
@@ -17,16 +25,17 @@ class PydanticGenerator(IGenerator):
         self.tree = {}
 
         for schema in metadata.schema:
-            self.tree[schema.schema_name] = {}
+            folder_name = FolderName(schema.schema_name)
+            self.tree[folder_name] = {}
 
             for table in schema.tables:
 
-                table_name = table.table_name
-                self.tree[schema.schema_name][table_name] = []
+                table_name = TableName(table.table_name)
+                self.tree[folder_name][table_name] = []
 
                 for column in table.columns:
                     g_type = self.build_gen_type(column)
-                    self.tree[schema.schema_name][table_name].append(g_type)
+                    self.tree[folder_name][table_name].append(g_type)
 
         return self.tree
 
@@ -36,7 +45,7 @@ class PydanticGenerator(IGenerator):
         g.nullable = True if column.is_nullable == "YES" else False
 
         # Gets the python mapping for the database type
-        name_type = column.udt_name
+        name_type = NameType(column.udt_name)
         val_type = type_map.get_type(name_type)
 
         if val_type is None:
