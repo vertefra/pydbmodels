@@ -17,7 +17,7 @@ classifiers = [
 ]
 
 dependencies = [
-    "dbmeta>=0.0.8",
+    "dbmeta>=0.0.10",
     "Jinja2>=3.1.2",
     "black>=22.10.0"
 ]
