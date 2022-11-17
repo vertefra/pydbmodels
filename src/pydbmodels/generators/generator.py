@@ -1,8 +1,8 @@
-from typing import List, NewType, Dict, Protocol
+from typing import List, NewType, Dict, Any, Protocol, TypeVar, Generic
 from abc import ABC, abstractmethod
 
-
 class GenType:
+    """ Class that describes the type on a column in a way that is interpretable by GenerateModels class """
     name: str
     str_value: List[str]
     imports: List[
@@ -18,8 +18,8 @@ class GenType:
 
 ModelName = NewType("ModelName", str)
 FolderName = NewType("FolderName", str)
-
 TableName = NewType("TableName", str)
+
 TableFile = Dict[TableName, List[GenType]]
 Tree = Dict[FolderName, TableFile]
 
@@ -44,13 +44,57 @@ class ISchema(Protocol):
     tables: List[ITable]
 
 
-class IMetadata(Protocol):
+ElementType = TypeVar("ElementType")
+
+
+class IUserDefinedRaw(Generic[ElementType], Protocol):
+    """Interface for user defined types before parsing the different elements"""
+
+    name: str
+    elements: ElementType
+
+
+class IMetadata(Generic[ElementType], Protocol):
     schema: List[ISchema]
+    user_defined: List[IUserDefinedRaw[ElementType]]
+
+
+class IUserDefined(Protocol):
+    name: str # How the user defined is represented as a datatype in the database
+    elements: List[str] # List of elements that the user defined type contains
+    is_enum: bool # True if the user defined type is an enum
+    class_name: str # Name of the class that will be generated for the user defined type
 
 
 class IGenerator(ABC):
     """Interface that implements the build method to create the folders tree"""
 
+    @property
     @abstractmethod
-    def build(self, metadata: IMetadata) -> Tree:
-        pass
+    def imports() -> List[Dict[str, str]]:
+        """ Default import for the generated models 
+            List of dictionaries in the format { "from": str | None, "import": str}
+        """
+        ...
+
+    @property
+    @abstractmethod
+    def base_classes() -> List[str]:
+        """ Default base classes for the generated models """
+        ...
+
+    
+    @property
+    @abstractmethod
+    def tree() -> Tree:
+        ...
+    
+    @property
+    @abstractmethod
+    def user_defined() -> Dict[str, IUserDefined]:
+        ...
+
+    @abstractmethod
+    def build(self, metadata: IMetadata) -> None:
+        ...
+

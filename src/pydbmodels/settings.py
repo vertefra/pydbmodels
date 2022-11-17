@@ -10,9 +10,11 @@ class IdentifierSettings(TypedDict):
 
 
 class Settings:
-    database_url: str | None
+    database_url: str | None = None
     database: str = "postgres"
+    generator: str = "pydantic"
     location: str = "_models"
+    
     identifier_settings: IdentifierSettings = {
         "column_identifier": "id",
         "include_in_model": True,
@@ -23,9 +25,15 @@ class Settings:
 
 def init_settings() -> Settings:
     database_url = os.getenv("DATABASE_URL")
-    s = Settings()
-    s.database_url = database_url
+    generator = os.getenv("GENERATOR")
+    location = os.getenv("LOCATION")
 
+    s = Settings()
+    
+    s.database_url = s.database_url or database_url
+    s.generator = s.generator or generator
+    s.location = s.location or location
+    
     return s
 
 

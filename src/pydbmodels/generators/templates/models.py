@@ -1,6 +1,6 @@
 from ..generator import Tree, GenType
-from ...generator import TableFile
-from ....settings import config
+from ..generator import TableFile
+from ...settings import config
 from typing import Dict, Any, List, Set, Tuple
 from jinja2 import Environment, Template
 import os
@@ -11,6 +11,9 @@ env = Environment(autoescape=False, optimized=False)
 
 
 def unpack_import(import_dict: Dict[str, str]) -> Tuple[str, str | None]:
+    """ Takes a python dictionary with keys "import" and "from" and returns a tuple with the values 
+        Makes sure the keys are present and that the "import" key is not empty
+    """
     import_: str = ""
     from_: str | None = None
 
@@ -31,6 +34,28 @@ def folder() -> str:
     module = __file__
     split = module.split("/")[:-1]
     return "/".join(split)
+
+class _FromImportHeader:
+    imports: Dict[str, Set[str]] # key is the module and the set is the imports
+
+    def __init__(self) -> None:
+        self.imports = {}
+
+    def add_import(self, module: str, import_: str) -> None:
+        if module not in self.imports:
+            self.imports[module] = set()
+
+        self.imports[module].add(import_)
+
+
+class _ImportHeader:
+    imports: Set[str]
+
+    def __init__(self) -> None:
+        self.imports = set()
+
+    def add_import(self, import_: str) -> None:
+        self.imports.add(import_)
 
 
 class GenerateModels:
@@ -89,53 +114,42 @@ class GenerateModels:
 
     # This also adds the specific generator imports and other based on the genTypes
     def __consolidating_imports(self, gen_types: List[GenType]) -> Dict[str, Any]:
-        from_import_header: Dict[str, Set[str]] = {}
-        import_header: Set[str] = set()
+        # from ... import ... statements
+        from_import_header = _FromImportHeader()
+        
+        # import ... statements
+        import_header = _ImportHeader()
 
         # Adding specific generator imports if present
         for import_dict in self.generator_imports:
             import_, from_ = unpack_import(import_dict)
 
+            # If from_ is defined, the is a from... import statement
             if from_:
-                # from ... import statement
-
-                current_imports = from_import_header.get(from_, set())
-                current_imports.add(import_ or "")
-                from_import_header[from_] = current_imports
-
+                from_import_header.add_import(from_, import_)
             else:
-                # import ... statement
-                import_header.add(import_ or "")
+                import_header.add_import(import_)
 
         # Adding model imports
         for model in gen_types:
             if model.is_union:
                 # Add from typing import Union
-                current_imports = from_import_header.get("typing", set())
-                current_imports.add("Union")
-                from_import_header["typing"] = current_imports
+                from_import_header.add_import("typing", "Union")
 
             if model.nullable:
-                current_imports = from_import_header.get("typing", set())
-                current_imports.add("Union")
-                from_import_header["typing"] = current_imports
+                # Add from typing import Optional
+                from_import_header.add_import("typing", "Union")
 
             if model.imports:
                 for import_dict in model.imports:
                     model_import, model_from = unpack_import(import_dict)
 
                     if model_from:
-                        # from ... import statement
-
-                        current_imports = from_import_header.get(model_from, set())
-                        current_imports.add(import_)
-                        from_import_header[model_from] = current_imports
-
+                        from_import_header.add_import(model_from, model_import)
                     else:
-                        # import ... statement
-                        import_header.add(model_import)
+                        import_header.add_import(model_import)
 
         return {
-            "from_import_header": from_import_header,
-            "import_header": import_header,
+            "from_import_header": from_import_header.imports,
+            "import_header": import_header.imports,
         }

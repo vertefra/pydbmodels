@@ -1,5 +1,5 @@
 from typing import NewType, Dict, Tuple, Type
-from ..types import ValType, TText, TInt, TDatetime, TJson, TBool, IValType
+from ..types import TText, TInt, TDatetime, TJson, TBool, IValType
 from typing import List
 
 NameType = NewType("NameType", str)
@@ -38,7 +38,7 @@ def generate_list_valType(
 
     _V_Array_class: Type[IValType] = type(
         name,
-        (object, IValType),
+        (object,),
         {
             "imports": [*(val.imports or []), *(list_import or [])],
             "str_value": str_value,

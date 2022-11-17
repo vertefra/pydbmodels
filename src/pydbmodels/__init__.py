@@ -2,8 +2,8 @@ from dbmeta import dbmeta  # type: ignore
 from dbmeta.connections.postgres import exclude  # type: ignore
 
 from .settings import config
-from .generators.pydantic.generator import PydanticGenerator
-from .generators.pydantic.templates.models import GenerateModels
+from .generators import InitGenerator
+from .generators.templates.models import GenerateModels
 
 
 def generate(db_type: str | None, db_url: str | None):
@@ -14,14 +14,21 @@ def generate(db_type: str | None, db_url: str | None):
         config.database_url = db_url
 
     metadata = dbmeta.gen_metadata(config.database, config.database_url)
-    p = PydanticGenerator()
-    tree = p.build(metadata)
-    g = GenerateModels(
+
+    # For now, only option is pydantic
+
+    generator = InitGenerator(config.generator)
+    generator.build(metadata)
+
+    tree = generator.tree
+    user_defined = generator.user_defined
+    imports = generator.imports
+    base_classes = generator.base_classes
+
+    models = GenerateModels(
         tree,
-        [
-            {"from": "pydantic", "import": "BaseModel"},
-            {"from": "typing", "import": "Union"},
-        ],
-        ["BaseModel"],
+        imports,
+        base_classes,
     )
-    g.write()
+    
+    models.write()
