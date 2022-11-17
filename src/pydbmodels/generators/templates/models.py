@@ -11,8 +11,8 @@ env = Environment(autoescape=False, optimized=False)
 
 
 def unpack_import(import_dict: Dict[str, str]) -> Tuple[str, str | None]:
-    """ Takes a python dictionary with keys "import" and "from" and returns a tuple with the values 
-        Makes sure the keys are present and that the "import" key is not empty
+    """Takes a python dictionary with keys "import" and "from" and returns a tuple with the values
+    Makes sure the keys are present and that the "import" key is not empty
     """
     import_: str = ""
     from_: str | None = None
@@ -35,8 +35,9 @@ def folder() -> str:
     split = module.split("/")[:-1]
     return "/".join(split)
 
+
 class _FromImportHeader:
-    imports: Dict[str, Set[str]] # key is the module and the set is the imports
+    imports: Dict[str, Set[str]]  # key is the module and the set is the imports
 
     def __init__(self) -> None:
         self.imports = {}
@@ -116,7 +117,7 @@ class GenerateModels:
     def __consolidating_imports(self, gen_types: List[GenType]) -> Dict[str, Any]:
         # from ... import ... statements
         from_import_header = _FromImportHeader()
-        
+
         # import ... statements
         import_header = _ImportHeader()
 

@@ -18,8 +18,8 @@ import re
 
 class UserDefined(IUserDefined):
     name: str
-    class_name: str # How it will be represented in the model
-    is_enum: bool = True # For now we only support enums
+    class_name: str  # How it will be represented in the model
+    is_enum: bool = True  # For now we only support enums
     elements: List[str]
 
     def __init__(self, name: str, elements: List[str]) -> None:
@@ -65,9 +65,9 @@ class PydanticGenerator(IGenerator):
     _user_defined: Dict[str, IUserDefined] = {}
     # generator specific imports
     _imports: List[Dict[str, str]] = [
-            {"from": "pydantic", "import": "BaseModel"},
-            {"from": "typing", "import": "Union"},
-        ]
+        {"from": "pydantic", "import": "BaseModel"},
+        {"from": "typing", "import": "Union"},
+    ]
     # generator specific base classes
     _base_classes: List[str] = ["BaseModel"]
 
@@ -133,7 +133,7 @@ class PydanticGenerator(IGenerator):
             # Check if the type is user defined
             if name_type in self.user_defined:
                 ud = self.user_defined[name_type]
-                g.str_value = [ud.name]
+                g.str_value = [ud.class_name]
                 g.imports = [{"from": "..user_defined", "import": ud.class_name}]
             else:
                 raise Exception(f"No type found for {name_type}")

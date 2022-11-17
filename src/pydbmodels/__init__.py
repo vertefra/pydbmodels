@@ -30,5 +30,5 @@ def generate(db_type: str | None, db_url: str | None):
         imports,
         base_classes,
     )
-    
+
     models.write()

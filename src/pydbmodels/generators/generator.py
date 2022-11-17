@@ -1,8 +1,10 @@
 from typing import List, NewType, Dict, Any, Protocol, TypeVar, Generic
 from abc import ABC, abstractmethod
 
+
 class GenType:
-    """ Class that describes the type on a column in a way that is interpretable by GenerateModels class """
+    """Class that describes the type on a column in a way that is interpretable by GenerateModels class"""
+
     name: str
     str_value: List[str]
     imports: List[
@@ -60,10 +62,10 @@ class IMetadata(Generic[ElementType], Protocol):
 
 
 class IUserDefined(Protocol):
-    name: str # How the user defined is represented as a datatype in the database
-    elements: List[str] # List of elements that the user defined type contains
-    is_enum: bool # True if the user defined type is an enum
-    class_name: str # Name of the class that will be generated for the user defined type
+    name: str  # How the user defined is represented as a datatype in the database
+    elements: List[str]  # List of elements that the user defined type contains
+    is_enum: bool  # True if the user defined type is an enum
+    class_name: str  # Name of the class that will be generated for the user defined type
 
 
 class IGenerator(ABC):
@@ -72,23 +74,22 @@ class IGenerator(ABC):
     @property
     @abstractmethod
     def imports() -> List[Dict[str, str]]:
-        """ Default import for the generated models 
-            List of dictionaries in the format { "from": str | None, "import": str}
+        """Default import for the generated models
+        List of dictionaries in the format { "from": str | None, "import": str}
         """
         ...
 
     @property
     @abstractmethod
     def base_classes() -> List[str]:
-        """ Default base classes for the generated models """
+        """Default base classes for the generated models"""
         ...
 
-    
     @property
     @abstractmethod
     def tree() -> Tree:
         ...
-    
+
     @property
     @abstractmethod
     def user_defined() -> Dict[str, IUserDefined]:
@@ -97,4 +98,3 @@ class IGenerator(ABC):
     @abstractmethod
     def build(self, metadata: IMetadata) -> None:
         ...
-
