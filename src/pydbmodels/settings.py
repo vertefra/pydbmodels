@@ -14,6 +14,10 @@ class Settings:
     database: str = "postgres"
     generator: str = "pydantic"
     location: str = "_models"
+    user_defined_file_name: str = "user_defined.py"
+    table_template_file_name: str = "_table_templates.j2"
+    user_defined_template_file_name = "_user_defined_templates.j2"
+    schema_init_file_templates = "_schema_init_file_templates.j2"
 
     identifier_settings: IdentifierSettings = {
         "column_identifier": "id",
@@ -31,8 +35,8 @@ def init_settings() -> Settings:
     s = Settings()
 
     s.database_url = s.database_url or database_url
-    s.generator = s.generator or generator
-    s.location = s.location or location
+    s.generator = generator or s.generator
+    s.location = location or s.location
 
     return s
 

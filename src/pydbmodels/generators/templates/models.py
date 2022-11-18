@@ -1,6 +1,7 @@
 from ..generator import Tree, GenType
 from ..generator import TableFile
 from ...settings import config
+from ..generator import IUserDefined
 from typing import Dict, Any, List, Set, Tuple
 from jinja2 import Environment, Template
 import os
@@ -60,13 +61,16 @@ class _ImportHeader:
 
 
 class GenerateModels:
+    """ Generates all the files from the tree and the user defined list """
     models_folder: str
     tree: Tree
     generator_imports: List[Dict[str, str]]
+    user_defined: List[IUserDefined]
 
     def __init__(
         self,
         tree: Tree,
+        user_defined: List[IUserDefined] = [],
         generator_imports: List[Dict[str, str]] = [],
         class_parents: List[str] = [],
     ) -> None:
@@ -74,11 +78,76 @@ class GenerateModels:
         self.tree = tree
         self.generator_imports = generator_imports
         self.class_parents = class_parents
+        self.user_defined = user_defined
 
     def write(self) -> None:
         for schema in self.tree:
             table_file = self.tree[schema]
             self.write_table(schema, table_file)
+            self.write_schema_init_file(schema, table_file)
+
+        self.write_user_defined_as_enum(self.user_defined)
+        self.write_main_init_file()
+        
+    def write_main_init_file(self) -> None:
+        file_path = f"{self.models_folder}/__init__.py"
+
+        from_import_header = _FromImportHeader()
+
+        for schema in self.tree:
+            import_ = f"{schema}"
+
+            from_import_header.add_import(".", import_)
+
+        with open(file_path, "w") as write_file:
+            with open(
+                f"{folder()}/{config.schema_init_file_templates}", "r"
+            ) as template_file:
+                t = env.from_string(template_file.read())
+                t.stream(
+                    from_imports=from_import_header.imports,
+                ).dump(write_file)
+
+    def write_schema_init_file(self, schema: str, tables: TableFile):
+        file_path = f"{self.models_folder}/{schema}/__init__.py"
+
+        from_import_header = _FromImportHeader()
+
+        for table_name in tables:
+            pretty_table_name = self.__pretty_table_name(table_name)
+            import_ = f"{pretty_table_name}Model, {pretty_table_name}Initializer, {pretty_table_name}Updater"
+            from_import_header.add_import(f".{table_name}", import_)
+
+        with open(file_path, "w") as write_file:
+            with open(
+                f"{folder()}/{config.schema_init_file_templates}", "r"
+            ) as template_file:
+                t = env.from_string(template_file.read())
+                t.stream(
+                    from_imports=from_import_header.imports,
+                    tables=tables,
+                ).dump(write_file)
+
+    def write_user_defined_as_enum(self, user_defined: List[IUserDefined] = []) -> None:
+        if not user_defined:
+            return
+
+        user_defined_file_path = f"{self.models_folder}/{config.user_defined_file_name}"
+        os.makedirs(os.path.dirname(user_defined_file_path), exist_ok=True)
+
+        from_import_header: Dict[str, Set[str]] = {
+            "enum": set(["Enum"]),
+        }
+
+        with open(user_defined_file_path, "w") as write_file:
+            with open(
+                f"{folder()}/{config.user_defined_template_file_name}", "r"
+            ) as template_file:
+                t = env.from_string(template_file.read())
+                t.stream(
+                    from_imports=from_import_header,
+                    user_defined=user_defined,
+                ).dump(write_file)
 
     def write_table(self, schema: str, tables: TableFile):
 
@@ -95,7 +164,9 @@ class GenerateModels:
             import_header: Set[str] = imports["import_header"]
 
             with open(file_path, "w") as write_file:
-                with open(f"{folder()}/_table_templates.j2", "r") as template_file:
+                with open(
+                    f"{folder()}/{config.table_template_file_name}", "r"
+                ) as template_file:
                     t = env.from_string(template_file.read())
                     t.stream(
                         from_imports=from_import_header,

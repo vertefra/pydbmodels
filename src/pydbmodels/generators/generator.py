@@ -53,12 +53,7 @@ class IUserDefinedRaw(Generic[ElementType], Protocol):
     """Interface for user defined types before parsing the different elements"""
 
     name: str
-    elements: ElementType
-
-
-class IMetadata(Generic[ElementType], Protocol):
-    schema: List[ISchema]
-    user_defined: List[IUserDefinedRaw[ElementType]]
+    elements: ElementType  # Postgres generator returns a string as ElementType, where all the elements are divided by \n
 
 
 class IUserDefined(Protocol):
@@ -68,12 +63,17 @@ class IUserDefined(Protocol):
     class_name: str  # Name of the class that will be generated for the user defined type
 
 
+class IMetadata(Generic[ElementType], Protocol):
+    schema: List[ISchema]
+    user_defined: List[IUserDefinedRaw[ElementType]]
+
+
 class IGenerator(ABC):
     """Interface that implements the build method to create the folders tree"""
 
     @property
     @abstractmethod
-    def imports() -> List[Dict[str, str]]:
+    def imports(self) -> List[Dict[str, str]]:
         """Default import for the generated models
         List of dictionaries in the format { "from": str | None, "import": str}
         """
@@ -81,18 +81,18 @@ class IGenerator(ABC):
 
     @property
     @abstractmethod
-    def base_classes() -> List[str]:
+    def base_classes(self) -> List[str]:
         """Default base classes for the generated models"""
         ...
 
     @property
     @abstractmethod
-    def tree() -> Tree:
+    def tree(self) -> Tree:
         ...
 
     @property
     @abstractmethod
-    def user_defined() -> Dict[str, IUserDefined]:
+    def user_defined(self) -> Dict[str, IUserDefined]:
         ...
 
     @abstractmethod

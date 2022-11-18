@@ -1,0 +1,13 @@
+{%- if from_imports -%}
+    {%- for from_, imports in from_imports.items() -%}
+    from {{ from_ }} import {{ ", ".join(imports) }}{{"\n"}}
+
+    {%- endfor -%}
+{%- endif -%}
+
+{%- if imports -%}
+    {%- for import_ in imports -%}
+    import {{ import_ }}{{"\n"}}
+
+    {%- endfor -%}
+{%- endif -%}

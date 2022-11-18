@@ -21,12 +21,13 @@ def generate(db_type: str | None, db_url: str | None):
     generator.build(metadata)
 
     tree = generator.tree
-    user_defined = generator.user_defined
+    user_defined = [ud for ud in generator.user_defined.values()]
     imports = generator.imports
     base_classes = generator.base_classes
 
     models = GenerateModels(
         tree,
+        user_defined,
         imports,
         base_classes,
     )
