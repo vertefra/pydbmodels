@@ -1,4 +1,4 @@
-from dbmeta.connections.exclude import exclude
+from dbmeta.connections.exclude import exclude  # type: ignore
 from .pydbmodels import generate
 from .pydbmodels.settings import config
 from .pydbmodels.generators import types

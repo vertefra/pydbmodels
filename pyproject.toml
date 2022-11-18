@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pydbmodels"
-version = "0.0.9"
+version = "0.0.10"
 authors = [
     { name="Francesco Vertemati", email="verte.fra@gmail.com" }
 ]
@@ -17,9 +17,27 @@ classifiers = [
 ]
 
 dependencies = [
-    "dbmeta>=0.0.8",
+    "dbmeta>=0.0.10",
     "Jinja2>=3.1.2",
     "black>=22.10.0"
 ]
 
 [project.urls]
+
+[project.optional-dependencies]
+test = [
+  "pytest==7.2.0",
+  "pytest-cov==4.0.0",
+  "pydantic>=1.10.2",
+  "psycopg>=3.1.4"
+]
+
+lint = [
+    "mypy==0.990",
+    "black==22.10.0"
+]
+
+# mypy settings 
+[tool.mypy]
+warn_return_any = true
+exclude = ["^tests/$", "^.venv/$", "^._models/$"]

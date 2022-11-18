@@ -1,0 +1,14 @@
+{%- for from_, imports in from_imports.items() -%}
+from {{ from_ }} import {{ ", ".join(imports) }}{{"\n"}}
+
+{%- endfor -%}
+
+{% for type in user_defined %}
+class {{ type.class_name }}(str, Enum):
+    """{{ type.name }} representation """
+    
+    {%- for element in type.elements %}
+    {{ element }} = "{{ element }}"
+    {%- endfor %}
+
+{% endfor %}
