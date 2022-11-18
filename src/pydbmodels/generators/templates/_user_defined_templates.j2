@@ -1,3 +1,8 @@
+{%- if docstring_header +%}
+{{ docstring_header }}
+{% endif %}
+
+
 {%- for from_, imports in from_imports.items() -%}
 from {{ from_ }} import {{ ", ".join(imports) }}{{"\n"}}
 
